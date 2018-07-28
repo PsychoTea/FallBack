@@ -33,9 +33,14 @@
 
         public void PerformBackup()
         {
+            Logger.Log($"--> {OriginalPath}");
+
             // Source is a directory
             if (Directory.Exists(OriginalPath))
             {
+                // Create the given directory
+                Directory.CreateDirectory(TargetPath);
+
                 foreach (string dirPath in Directory.GetDirectories(OriginalPath, "*", SearchOption.AllDirectories))
                 {
                     Directory.CreateDirectory(dirPath.Replace(OriginalPath, TargetPath));
@@ -54,7 +59,7 @@
             {
                 Directory.CreateDirectory(parent);
             }
-
+            
             File.Copy(OriginalPath, TargetPath);
         }
     }

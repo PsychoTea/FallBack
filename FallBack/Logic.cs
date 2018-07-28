@@ -102,7 +102,7 @@
 
             Directory.CreateDirectory(backupDir);
 
-            Logger.Log($"Backing up {validBackupSchemas.Count} schemas.");
+            Logger.Log($"Backing up {validBackupSchemas.Count} objects.");
 
             validBackupSchemas.ForEach(x => x.PerformBackup());
 
