@@ -1,5 +1,6 @@
 ﻿namespace FallBack
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -20,18 +21,33 @@
 
         private static void Main(string[] args)
         {
-            // Load all dependencies
-            var assembly = Assembly.GetExecutingAssembly();
-            foreach (var manifest in assembly.GetManifestResourceNames().Where(x => x.EndsWith(".dll")))
+            AppDomain.CurrentDomain.AssemblyResolve += (s, e) =>
             {
-                using (var stream = assembly.GetManifestResourceStream(manifest))
+                var name = new AssemblyName(e.Name).Name;
+                string assemblyName = $"FallBack.Dependencies.{name}.dll";
+               
+                var assembly = Assembly.GetExecutingAssembly();
+
+                if (!assembly.GetManifestResourceNames().Any(x => x.Contains(assemblyName)))
+                {
+                    Logger.Log($"Tried to resolve assembly but was not found: {name}.");
+                    return null;
+                }
+
+                using (var stream = assembly.GetManifestResourceStream(assemblyName))
                 {
                     byte[] assmData = new BinaryReader(stream).ReadBytes((int)stream.Length);
 
-                    Assembly.Load(assmData);
+                    return Assembly.Load(assmData);
                 }
-            }
 
+            };
+
+            Run(args);
+        }
+
+        private static void Run(string[] args)
+        {
             Logger.Log($"FallBack. Written by PsychoTea (Ben Sparkes).");
 
             int loadedSchemas = Schema.Manager.Initialize();
