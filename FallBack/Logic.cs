@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FallBack
+﻿namespace FallBack
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+
     class Logic
     {
         private static List<string> GenerateBasePaths(Schema.SchemaModel model)
