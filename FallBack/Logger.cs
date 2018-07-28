@@ -1,12 +1,18 @@
 ﻿namespace FallBack
 {
     using System;
+    using System.IO;
 
     public static class Logger
     {
+        private const string LogFileName = "log.txt";
+
         public static void Log(string text)
         {
             Console.WriteLine(text);
+
+            string timestamp = DateTime.UtcNow.ToString("yyyy-MM-ss HH:mm:ss");
+            File.AppendAllText(LogFileName, $"[{timestamp}] {text}\r\n");
         }
 
         public static void LogError(string text)
