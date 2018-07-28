@@ -1,6 +1,8 @@
 ﻿namespace FallBack
 {
+    using System.IO;
     using System.Linq;
+    using System.Reflection;
 
     class Program
     {
@@ -18,6 +20,18 @@
 
         private static void Main(string[] args)
         {
+            // Load all dependencies
+            var assembly = Assembly.GetExecutingAssembly();
+            foreach (var manifest in assembly.GetManifestResourceNames().Where(x => x.EndsWith(".dll")))
+            {
+                using (var stream = assembly.GetManifestResourceStream(manifest))
+                {
+                    byte[] assmData = new BinaryReader(stream).ReadBytes((int)stream.Length);
+
+                    Assembly.Load(assmData);
+                }
+            }
+
             Logger.Log($"FallBack. Written by PsychoTea (Ben Sparkes).");
 
             int loadedSchemas = Schema.Manager.Initialize();
