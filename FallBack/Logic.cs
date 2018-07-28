@@ -3,9 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
 
     class Logic
     {
+        private static Regex TimestampRegex = new Regex(@"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(_\d+)?");
+
         private static List<string> GenerateBasePaths(Schema.SchemaModel model)
         {
             List<string> basePaths = new List<string>();
@@ -68,7 +72,7 @@
             {
                 int dirInc = 1;
                 string newDirName = string.Empty;
-                while (Directory.Exists((newDirName = $"{backupDir} {dirInc}")))
+                while (Directory.Exists((newDirName = $"{backupDir}_{dirInc}")))
                 {
                     dirInc++;
                 }
@@ -85,15 +89,15 @@
             foreach (var file in model.Files)
             {
                 var backupFile = new BackupFileModel(
-                    file, 
-                    model.BaseDirectory, 
+                    file,
+                    model.BaseDirectory,
                     backupDir);
 
                 if (!backupFile.IsValid()) continue;
 
                 validBackupSchemas.Add(backupFile);
             }
-            
+
             if (validBackupSchemas.Count == 0)
             {
                 Logger.LogError("No files were found to back up. Bailing...");
@@ -106,8 +110,38 @@
 
             validBackupSchemas.ForEach(x => x.PerformBackup());
 
-            Logger.BlankLine();
             Logger.Log($"Backup complete.");
+        }
+
+        public static void CleanSchema(Schema.SchemaModel model)
+        {
+            if (!Logic.VerifyValidity(model))
+            {
+                return;
+            }
+
+            if (model.CleanKeepCount <= 0)
+            {
+                Logger.Log($"Clean count for model {model.Name} is set to {model.CleanKeepCount}. Skipping...");
+                return;
+            }
+
+            List<string> dirs = Directory.GetDirectories(model.BackupDirectory, "*", SearchOption.TopDirectoryOnly)
+                                    .Where(x => TimestampRegex.IsMatch(Path.GetFileName(x)))
+                                    .ToList();
+            
+            List<string> dirsToRemove = dirs.OrderByDescending(x => x)
+                                            .Skip(model.CleanKeepCount)
+                                            .ToList();
+
+            foreach (var dir in dirsToRemove)
+            {
+                Logger.Log($"--> {dir}");
+
+                Directory.Delete(dir, true);
+            }
+
+            Logger.Log("Clean complete.");
         }
     }
 }

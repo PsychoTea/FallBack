@@ -11,10 +11,13 @@
         {
             Logger.Log("Usage:");
 
+            Logger.Log("  help            -- Shows this help page");
             Logger.Log("  template [name] -- Create a schema template with [name]");
             Logger.Log("  list            -- List all schemas");
             Logger.Log("  execute [name]  -- Execute the given schema");
             Logger.Log("  executeall      -- Execute all schemas");
+            Logger.Log("  clean           -- Clean the given schema");
+            Logger.Log("  cleanall        -- Clean all schemas");
 
             Logger.BlankLine();
         }
@@ -48,16 +51,20 @@
 
         private static void Run(string[] args)
         {
+            Logger.BlankLine();
             Logger.Log($"FallBack. Written by PsychoTea (Ben Sparkes).");
 
             int loadedSchemas = Schema.Manager.Initialize();
 
             Logger.Log($"Loaded {loadedSchemas} schemas.");
 
-            // template [name] -- Create a schema template
-            // list -- List all schemas
-            // execute [name] -- Execute the given schema
-            // executeall -- Execute all schemas
+            // help             -- Shows this help page
+            // template [name]  -- Create a schema template
+            // list             -- List all schemas
+            // execute [name]   -- Execute the given schema
+            // executeall       -- Execute all schemas
+            // clean [name]     -- Clean the given schema
+            // cleanall         -- Clean all schemas
 
             Logger.BlankLine();
 
@@ -71,6 +78,10 @@
 
             switch (option)
             {
+                case "help":
+                    PrintUsage();
+                    break;
+
                 case "template":
                     if (args.Length < 2)
                     {
@@ -107,19 +118,19 @@
                         return;
                     }
 
-                    string schemaName = string.Join(" ", args.Skip(1));
+                    string exSchemaName = string.Join(" ", args.Skip(1));
 
                     // Find the schema
-                    Schema.SchemaModel foundSchema = Schema.Manager.Find(schemaName);
-                    if (foundSchema == null)
+                    Schema.SchemaModel exSchema = Schema.Manager.Find(exSchemaName);
+                    if (exSchema == null)
                     {
-                        Logger.Log($"A schema was not found with the name '{schemaName}'.");
+                        Logger.Log($"A schema was not found with the name '{exSchemaName}'.");
                         return;
                     }
 
                     // Execute!
-                    Logger.Log($"Executing schema {foundSchema.Name}...");
-                    Logic.ExecuteSchema(foundSchema);
+                    Logger.Log($"Executing schema {exSchema.Name}...");
+                    Logic.ExecuteSchema(exSchema);
                     break;
 
                 case "executeall":
@@ -130,10 +141,46 @@
                     {
                         Logger.Log($"Executing schema {schema.Name}...");
                         Logic.ExecuteSchema(schema);
+                        Logger.BlankLine();
+                    }
+                    
+                    Logger.Log($"Finished executing {loadedSchemas} schemas.");
+                    break;
+
+                case "clean":
+                    if (args.Length < 2)
+                    {
+                        PrintUsage();
+                        return;
                     }
 
+                    string cleanSchemaName = string.Join(" ", args.Skip(1));
+
+                    // Find the schema
+                    Schema.SchemaModel cleanSchema = Schema.Manager.Find(cleanSchemaName);
+                    if (cleanSchema == null)
+                    {
+                        Logger.Log($"A schema was not found with the name '{cleanSchemaName}'.");
+                        return;
+                    }
+
+                    // Clean!
+                    Logger.Log($"Cleaning schema {cleanSchema.Name}...");
+                    Logic.CleanSchema(cleanSchema);
+                    break;
+
+                case "cleanall":
+                    Logger.Log($"Cleaning all ({loadedSchemas}) schemas...");
                     Logger.BlankLine();
-                    Logger.Log($"Finished executing {loadedSchemas} schemas.");
+
+                    foreach (var schema in Schema.Manager.Schemas)
+                    {
+                        Logger.Log($"Cleaning schema {schema.Name}...");
+                        Logic.CleanSchema(schema);
+                        Logger.BlankLine();
+                    }
+
+                    Logger.Log($"Finished cleaning {loadedSchemas} schemas.");
                     break;
 
                 default:
