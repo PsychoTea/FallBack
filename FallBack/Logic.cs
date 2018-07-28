@@ -24,6 +24,19 @@
             return basePaths;
         }
 
+        private static void WipeAttributes(DirectoryInfo directory)
+        {
+            foreach (var subDir in directory.GetDirectories())
+            {
+                WipeAttributes(subDir);
+            }
+
+            foreach (var file in directory.GetFiles())
+            {
+                file.Attributes = FileAttributes.Normal;
+            }
+        }
+
         public static bool VerifyValidity(Schema.SchemaModel model)
         {
             if (string.IsNullOrEmpty(model.BaseDirectory) ||
@@ -137,6 +150,8 @@
             foreach (var dir in dirsToRemove)
             {
                 Logger.Log($"--> {dir}");
+
+                WipeAttributes(new DirectoryInfo(dir));
 
                 Directory.Delete(dir, true);
             }
